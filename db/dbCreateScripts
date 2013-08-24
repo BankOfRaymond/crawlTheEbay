@@ -1,0 +1,43 @@
+create table listing(
+ebay_item_id VARCHAR(255) PRIMARY KEY,
+title VARCHAR(255),
+category_id INT,
+gallery_url VARCHAR(255),
+view_item_url VARCHAR(255),
+product_id INT,
+postal_code INT,
+location VARCHAR(30),
+country VARCHAR(20),
+listing_currency VARCHAR(5),
+listing_currency_price BIGINT,
+converted_currency VARCHAR(5),
+converted_currency_price BIGINT,
+bid_count INT,
+selling_state VARCHAR(20),
+best_offer_enabled TINYINT,
+buy_it_now_available TINYINT,
+start_time DATETIME,
+end_time DATETIME,
+listing_type VARCHAR(12),
+is_gift TINYINT,
+condition_state_id INT,
+is_multivariation_listing TINYINT,
+year INT,
+miles INT,
+top_rated_listing TINYINT,
+curated TINYINT DEFAULT 0
+);
+
+
+create table condition_state(
+condition_state_id int PRIMARY KEY,
+name VARCHAR(20)
+);
+
+
+
+create table category( category_id int PRIMARY KEY,
+model varchar(255),
+make varchar(255)
+);
+
