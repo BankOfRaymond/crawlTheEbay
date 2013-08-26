@@ -68,7 +68,7 @@ class CrawlerControl():
 		self.catList = []
 		self.crawlCount = 0
 		self.dbObj = dbControl.DBControl()
-		self.maxCrawlPerDay = 5000 -1000
+		self.maxCrawlPerDay = 5000 
 
 
 	def getListToCrawl(self):
@@ -77,7 +77,7 @@ class CrawlerControl():
 		# If database empty, then use category 6001
 		self.catList.append(6001)
 		self.catList.append(6024)
-
+		
 	
 	def crawl(self):
 		for cat in self.catList:
@@ -88,14 +88,15 @@ class CrawlerControl():
 		firstAPICall = APICall(categoryId,1)
 		response = requests.get(firstAPICall.getAPICall()).json()
 		
-		totalPages = response['findCompletedItemsResponse'][0]['paginationOutput'][0]['totalPages'][0]
-		self.dbObj.connect()
+		totalPages = int(response['findCompletedItemsResponse'][0]['paginationOutput'][0]['totalPages'][0])
+		self.dbObj.connect()	#DB Connect
 
 		i=1
-		while i < totalPages and self.crawlCount < self.maxCrawlPerDay and i < 100:
+		while i <= totalPages and self.crawlCount < self.maxCrawlPerDay:# and i <= 100:
 			a = APICall(categoryId,i)
 			response = requests.get(a.getAPICall()).json()
 			self.crawlCount += 1
+			print "Category: ",categoryId, "OnPage: ",i, "APICalls: ",self.crawlCount, "Total Pages: ",totalPages
 			if "Failure" in response["findCompletedItemsResponse"][0]['ack']:
 				time.sleep(15)
 				print "Sleeping HTTP response failed"
@@ -103,8 +104,8 @@ class CrawlerControl():
 				self.insertIntoDB(response)  #Actual call to DB
 				time.sleep(1)
 				i = i+1
-			print "OnPage: ",i, "APICalls: ",self.crawlCount, "Total Pages: ",totalPages
-		self.dbObj.disconnect()
+			
+		self.dbObj.disconnect()	#DB Disconnect
 
 
 
