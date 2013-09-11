@@ -63,40 +63,43 @@ class CrawlerControl():
 	catList 		= None
 	crawlCount 		= None
 	maxCrawlPerDay 	= None
+	totalAdded 		= None
 
 	def __init__(self):
 		self.catList = []
 		self.crawlCount = 0
 		self.dbObj = dbControl.DBControl()
 		self.maxCrawlPerDay = 5000 
+		self.totalAdded = 0
 
 
 	def getListToCrawl(self):
-		# self.dbObj.connect()
-		# self.dbObj.disconnect()
-		# If database empty, then use category 6001
+		#If database empty, then use category 6001
 		self.catList.append(6001)
 		self.catList.append(6024)
+		self.dbObj.connect()
+		res = self.dbObj.getCategories()
+		for cat in res:	self.catList.append(cat[0])
+		self.dbObj.disconnect()
 		
-	
 	def crawl(self):
 		for cat in self.catList:
 			if self.crawlCount < self.maxCrawlPerDay:
 				self.crawlCategory(cat)
+		print "Total Added: ",self.totalAdded, "Crawl Count: ", self.crawlCount
+		print "Total in DB ( listings: ", self.dbObj.totalListing(), "categories: ", self.dbObj.totalCategory(), ")"
 
 	def crawlCategory(self,categoryId):
 		firstAPICall = APICall(categoryId,1)
 		response = requests.get(firstAPICall.getAPICall()).json()
-		
 		totalPages = int(response['findCompletedItemsResponse'][0]['paginationOutput'][0]['totalPages'][0])
 		self.dbObj.connect()	#DB Connect
 
 		i=1
-		while i <= totalPages and self.crawlCount < self.maxCrawlPerDay:# and i <= 100:
+		while i <= totalPages and self.crawlCount < self.maxCrawlPerDay and i <= 100:
 			a = APICall(categoryId,i)
 			response = requests.get(a.getAPICall()).json()
 			self.crawlCount += 1
-			print "Category: ",categoryId, "OnPage: ",i, "APICalls: ",self.crawlCount, "Total Pages: ",totalPages
 			if "Failure" in response["findCompletedItemsResponse"][0]['ack']:
 				time.sleep(15)
 				print "Sleeping HTTP response failed"
@@ -104,13 +107,12 @@ class CrawlerControl():
 				self.insertIntoDB(response)  #Actual call to DB
 				time.sleep(1)
 				i = i+1
-			
+		#print "Category: ",categoryId, "OnPage: ",i, "APICalls: ",self.crawlCount, "Total Pages: ",totalPages
 		self.dbObj.disconnect()	#DB Disconnect
 
 
-
-		#def isInDB(self,table, inColumn, outColumn, data):
-		#Ebay specific structure of JSon Response
+	#def isInDB(self,table, inColumn, outColumn, data):
+	#Ebay specific structure of JSon Response
 	def insertIntoDB(self,jRes):
 		listing = jRes['findCompletedItemsResponse'][0]['searchResult'][0]['item']
 
@@ -122,7 +124,7 @@ class CrawlerControl():
 			#print "In DB: ",inDB
 
 			if inDB is False:
-
+				self.totalAdded += 1
 				insertVal = {}
 				insertVal["ebay_item_id"] = itemID
 				#title
@@ -215,7 +217,6 @@ class CrawlerControl():
 					if l["topRatedListing"][0].encode("utf-8") == "true":	insertVal['top_rated_listing'] = 1
 					else:	insertVal['top_rated_listing'] = 0
 
-
 				columns = []
 				data = []
 				for item in insertVal:
@@ -223,9 +224,6 @@ class CrawlerControl():
 					data.append(insertVal[item])
 				self.dbObj.insert("listing", columns, data)	
 
-				#print insertVal
-	
 c = CrawlerControl()
 c.getListToCrawl()
 c.crawl()
-

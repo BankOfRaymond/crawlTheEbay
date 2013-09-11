@@ -37,27 +37,32 @@ class DBControl():
 		cursor.execute(query)
 		self.dbConnection.commit()
 
-
-	
-
-
-	def truncate(self, table):
-		cursor = self.dbConnection.cursor()
-		query = "".join(("TRUNCATE TABLE ",self.DATABASE,".",table))
-		self.dbConnection.commit()
-	
-	def showAll(self):
-		query = "SELECT * from listing;"
+	def getCategories(self):
+		query = "SELECT * FROM category"
 		cursor = self.dbConnection.cursor()
 		cursor.execute(query)
-		print cursor.fetchall()
+		return cursor.fetchall()
 
-
-		query = "SELECT * from category;"
+	def totalListing(self):
+		query = "SELECT count(*) FROM listing"
 		cursor = self.dbConnection.cursor()
 		cursor.execute(query)
-		print cursor.fetchall()
+		return cursor.fetchall()[0][0]
+		
+	def totalCategory(self):
+		query = "SELECT count(*) FROM category"
+		cursor = self.dbConnection.cursor()
+		cursor.execute(query)
+		return cursor.fetchall()[0][0]
 
+	# def showAll(self):
+	# 	query = "SELECT * from listing;"
+	# 	cursor = self.dbConnection.cursor()
+	# 	cursor.execute(query)
+	# 	query = "SELECT * from category;"
+	# 	cursor = self.dbConnection.cursor()
+	# 	cursor.execute(query)
+	# 	print cursor.fetchall()
 
 
 
