@@ -87,14 +87,15 @@ class CrawlerControl():
 			if self.crawlCount < self.maxCrawlPerDay:
 				self.crawlCategory(cat)
 		print "Total Added: ",self.totalAdded, "Crawl Count: ", self.crawlCount
+		self.dbObj.connect()	
 		print "Total in DB ( listings: ", self.dbObj.totalListing(), "categories: ", self.dbObj.totalCategory(), ")"
+		self.dbObj.disconnect()
 
 	def crawlCategory(self,categoryId):
 		firstAPICall = APICall(categoryId,1)
 		response = requests.get(firstAPICall.getAPICall()).json()
 		totalPages = int(response['findCompletedItemsResponse'][0]['paginationOutput'][0]['totalPages'][0])
 		self.dbObj.connect()	#DB Connect
-
 		i=1
 		while i <= totalPages and self.crawlCount < self.maxCrawlPerDay and i <= 100:
 			a = APICall(categoryId,i)
@@ -109,7 +110,6 @@ class CrawlerControl():
 				i = i+1
 		#print "Category: ",categoryId, "OnPage: ",i, "APICalls: ",self.crawlCount, "Total Pages: ",totalPages
 		self.dbObj.disconnect()	#DB Disconnect
-
 
 	#def isInDB(self,table, inColumn, outColumn, data):
 	#Ebay specific structure of JSon Response
